@@ -49,13 +49,15 @@ def on_startup() -> None:
 
 
 @app.get("/health")
-def health(db: Session = Depends(get_db)) -> dict[str, str]:
+def health(db: Session = Depends(get_db)) -> dict:
+    import os
+    env_keys = list(os.environ.keys())
     try:
         from sqlalchemy import text
         db.execute(text("SELECT 1"))
-        return {"status": "ok", "database": "connected"}
+        return {"status": "ok", "database": "connected", "env_keys": env_keys}
     except Exception as e:
-        return {"status": "error", "database": str(e)}
+        return {"status": "error", "database": str(e), "env_keys": env_keys}
 
 
 @app.get("/products", response_model=list[schemas.ProductRead])
