@@ -10,7 +10,7 @@ services:
     runtime: python
     pythonVersion: 3.12
     buildCommand: pip install -r backend/requirements.txt
-    startCommand: cd backend && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: bash backend/start.sh
     envVars:
       - key: PYTHONUNBUFFERED
         value: 1
