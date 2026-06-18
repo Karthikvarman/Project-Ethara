@@ -1,3 +1,3 @@
 #!/bin/bash
-cd /opt/render/project/backend
-uvicorn app.main:app --host 0.0.0.0 --port $PORT
+cd backend
+gunicorn -w 1 -k uvicorn.workers.UvicornWorker -b 0.0.0.0:$PORT app.main:app
