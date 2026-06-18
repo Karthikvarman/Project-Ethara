@@ -1,4 +1,5 @@
 import logging
+import time
 
 from fastapi import Depends, FastAPI, Response, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -25,14 +26,26 @@ app.add_middleware(
 
 @app.on_event("startup")
 def on_startup() -> None:
-    try:
-        Base.metadata.create_all(bind=engine)
-    except OperationalError:
-        logger.exception(
-            "Database connection failed. If you are running this backend as a Docker container, "
-            "start it with docker compose or pass DATABASE_URL pointing to a reachable PostgreSQL host."
-        )
-        raise
+    max_retries = 5
+    retry_count = 0
+    
+    while retry_count < max_retries:
+        try:
+            Base.metadata.create_all(bind=engine)
+            logger.info("Database tables created successfully")
+            return
+        except OperationalError as e:
+            retry_count += 1
+            if retry_count >= max_retries:
+                logger.warning(
+                    "Database connection failed after %d attempts. "
+                    "Tables will be created on first request. "
+                    "Ensure DATABASE_URL is set and PostgreSQL is accessible.",
+                    max_retries
+                )
+                return
+            logger.info(f"Database connection attempt {retry_count} failed, retrying in 2 seconds...")
+            time.sleep(2)
 
 
 @app.get("/health")
